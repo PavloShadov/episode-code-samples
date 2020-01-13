@@ -3,7 +3,22 @@
 
  1. As we saw with free `map` on `Array`, define free `map` on `Optional` and use it to compose setters that traverse into an optional field.
  */
-// TODO
+public func map<A, B>(_ f: @escaping (A) -> B) -> (A?) -> B? {
+  return { $0.map(f) }
+}
+
+// free map on array
+let sut = [(42, nil), (1729, "Swift")]
+sut |> map { print($0)}
+
+// free map on optional
+let optInteger: Int? = nil
+optInteger
+  |> map(String.init)
+
+// free map on array with optionals
+sut
+  |> (map <<< second <<< map) { $0 + " Rocks"}
 /*:
  2. Take the following `User` struct and write a setter for its `name` property. Add another property, and add a setter for it. What are some potential issues with building these setters?
  */

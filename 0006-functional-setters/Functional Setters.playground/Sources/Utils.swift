@@ -33,7 +33,6 @@ public func flip<A, C>(_ f: @escaping (A) -> () -> C) -> () -> (A) -> C {
   return { { a in f(a)() } }
 }
 
-
 precedencegroup SingleTypeComposition {
   associativity: left
   higherThan: ForwardApplication
@@ -52,3 +51,31 @@ public func incr(_ x: Int) -> Int {
 public func square(_ x: Int) -> Int {
   return x * x
 }
+
+precedencegroup BackwardsComposition {
+  associativity: left
+}
+infix operator <<<: BackwardsComposition
+public func <<< <A, B, C>(_ f: @escaping (B) -> C, _ g: @escaping (A) -> B) -> (A) -> C {
+  return { f(g($0)) }
+}
+
+
+// MARK: - Exercise 1 Helpers
+public func first<A, B, C>(_ f: @escaping (A) -> C) -> ((A, B)) -> (C, B) {
+  return { pair in
+    (f(pair.0), pair.1)
+  }
+}
+
+public func second<A, B, C>(_ f: @escaping (B) -> C) -> ((A, B)) -> (A, C) {
+  return { pair in
+    (pair.0, f(pair.1))
+  }
+}
+
+public func map<A, B>(_ f: @escaping (A) -> B) -> ([A]) -> [B] {
+  return { $0.map(f) }
+}
+
+// MARK: -
