@@ -32,50 +32,61 @@ struct User {
   let location: Location
 }
 
-func setName(_ name: String) -> (User) -> User {
-  return { User(name: name, lastname: $0.lastname, location: $0.location) }
+func setName(_ f: @escaping (String) -> String) -> (User) -> User {
+  return { User(name: f($0.name), lastname: $0.lastname, location: $0.location) }
 }
 
-func setLastname(_ lastname: String) -> (User) -> User {
-  return { User(name: $0.name, lastname: $0.lastname, location: user.location) }
+func setLastname(_ f: @escaping (String) -> String) -> (User) -> User {
+  return { User(name: $0.name, lastname: f($0.lastname), location: $0.location) }
 }
 
 let user = User(name: "Lera", lastname: "Shadova", location: Location(name: "Berlin"))
 let newUser = user
-  |> setName("Pavlo")
-  |> setLastname("Shadov")
+  |> setName { _ in "Pavlo"}
+  |> setName { $0.uppercased() }
+  |> setLastname { _ in "Shadov" }
 
 print(newUser)
 /*:
  3. Add a `location` property to `User`, which holds a `Location`, defined below. Write a setter for `userLocationName`. Now write setters for `userLocation` and `locationName`. How do these setters compose?
  */
-func setUserLocation(_ location: Location) -> (User) -> User {
-  return { User(name: $0.name, lastname: $0.lastname, location: location) }
+func setLocationName(_ f: @escaping (String) -> String) -> (Location) -> Location {
+  return { Location(name: f($0.name)) }
 }
 
-func setLocationName(_ locationName: () -> String) -> (Location) -> Location {
-  return { _ in Location(name: locationName()) }
+func setUserLocation(_ f: @escaping (Location) -> Location) -> (User) -> User {
+  return { User(name: $0.name, lastname: $0.lastname, location: f($0.location)) }
 }
 
-func setUserLocationName(_ locationName: String) -> (User) -> User {
-//  without composition:
-//
+func setUserLocationName(_ f: @escaping (String) -> String) -> (User) -> User {
   return { user in
-    let location = Location(name: locationName)
-    return User(name: user.name, lastname: user.lastname, location: location)
+    user
+      |> (setUserLocation <<< setLocationName)(f)
   }
-  
-//  with composition
-//
-//  return { user in
-//    user
-//      |> (setUserLocation(_:) <<< setLocationName){ locationName }
-//  }
 }
+
+let tester = User(name: "Tester", lastname: "One", location: Location(name: "New York"))
+let newTester = tester |> setUserLocationName { _ in "London" }
+print(newTester)
 /*:
  4. Do `first` and `second` work with tuples of three or more values? Can we write `first`, `second`, `third`, and `nth` for tuples of _n_ values?
  */
-// TODO
+let testTuple = (1, "Hello", 44)
+  
+// first and second - don't work with tuple of 3+ values
+//testTuple
+//  |> first(incr)
+
+func third<A, B, C, D>(_ f: @escaping (C) -> D) -> ((A, B, C)) -> (A, B, D) {
+  return { tuple in
+    return (tuple.0, tuple.1, f(tuple.2))
+  }
+}
+
+testTuple
+  |> third(incr)
+
+// Swift doesn't support variadic generics
 /*:
  5. Write a setter for a dictionary that traverses into a key to set a value.
  */
