@@ -19,6 +19,7 @@ optInteger
 // free map on array with optionals
 sut
   |> (map <<< second <<< map) { $0 + " Rocks"}
+print()
 /*:
  2. Take the following `User` struct and write a setter for its `name` property. Add another property, and add a setter for it. What are some potential issues with building these setters?
  */
@@ -47,6 +48,7 @@ let newUser = user
   |> setLastname { _ in "Shadov" }
 
 print(newUser)
+print()
 /*:
  3. Add a `location` property to `User`, which holds a `Location`, defined below. Write a setter for `userLocationName`. Now write setters for `userLocation` and `locationName`. How do these setters compose?
  */
@@ -68,6 +70,7 @@ func setUserLocationName(_ f: @escaping (String) -> String) -> (User) -> User {
 let tester = User(name: "Tester", lastname: "One", location: Location(name: "New York"))
 let newTester = tester |> setUserLocationName { _ in "London" }
 print(newTester)
+print()
 /*:
  4. Do `first` and `second` work with tuples of three or more values? Can we write `first`, `second`, `third`, and `nth` for tuples of _n_ values?
  */
@@ -85,16 +88,53 @@ func third<A, B, C, D>(_ f: @escaping (C) -> D) -> ((A, B, C)) -> (A, B, D) {
 
 testTuple
   |> third(incr)
+print()
 
 // Swift doesn't support variadic generics
 /*:
  5. Write a setter for a dictionary that traverses into a key to set a value.
  */
-// TODO
+func setValue<Key: Hashable, Value>(_ value: Value, for key: Key)
+  -> (Dictionary<Key, Value>) -> Dictionary<Key, Value> {
+    return { oldDictionary in
+        var newDictionary = oldDictionary
+        newDictionary[key] = value
+        return newDictionary
+    }
+}
+
+let testDict = ["first": 1, "second": 2]
+dump(
+testDict
+  |> setValue(3, for: "first")
+  |> setValue(150, for: "second")
+  |> setValue(0, for: "third")
+)
+print()
 /*:
  6. Write a setter for a dictionary that traverses into a key to set a value if and only if that value already exists.
  */
-// TODO
+func setValue<Key: Hashable, Value>(for key: Key)
+  -> (@escaping (Value) -> Value)
+  -> (Dictionary<Key, Value>) -> Dictionary<Key, Value> {
+  return { valueUpdate in
+    { oldDictionary in
+      guard let oldValue = oldDictionary[key] else { return oldDictionary }
+      var newDictionary = oldDictionary
+      newDictionary[key] = valueUpdate(oldValue)
+      return newDictionary
+    }
+  }
+}
+
+let testDict2 = ["first": 1, "second": 2]
+dump(
+testDict2
+  |> (setValue(for: "first")) { $0 + 1 }
+  |> (setValue(for: "second")) { _ in 0 }
+  |> (setValue(for: "third")) { _ in 999 }
+)
+print()
 /*:
  7. What is the difference between a function of the form `((A) -> B) -> (C) -> (D)` and one of the form `(A) -> (B) -> (C) -> D`?
  */
