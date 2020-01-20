@@ -138,4 +138,20 @@ print()
 /*:
  7. What is the difference between a function of the form `((A) -> B) -> (C) -> (D)` and one of the form `(A) -> (B) -> (C) -> D`?
  */
-// TODO
+//func firstForm<A, B, C, D>() -> ((A) -> B) -> (C) -> (D) {
+//  return { aToB in
+//    return { c in
+//      return d
+//    }
+//  }
+//}
+
+//func secondForm<A, B, C, D>() -> (A) -> (B) -> (C) -> (D) {
+//  return { a in
+//    return { b in
+//      return { c in
+//        return d
+//      }
+//    }
+//  }
+//}

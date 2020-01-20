@@ -3,7 +3,39 @@
 
  1. In this episode we used `Dictionary`’s subscript key path without explaining it much. For a `key: Key`, one can construct a key path `\.[key]` for setting a value associated with `key`. What is the signature of the setter `prop(\.[key])`? Explain the difference between this setter and the setter `prop(\.[key]) <<< map`, where `map` is the optional map.
  */
-// TODO
+func prop<Root, Value>(_ kp: WritableKeyPath<Root, Value>)
+  -> (@escaping (Value) -> Value)
+  -> (Root) -> Root {
+  return { update in
+    return { oldInstance in
+      var copy = oldInstance
+      copy[keyPath: kp] = update(copy[keyPath: kp])
+      return copy
+    }
+  }
+}
+
+struct Person {
+  var firstName: String
+  var lastName: String
+}
+
+let person = Person(firstName: "Pavlo", lastName: "Shadov")
+let newIdentity = (prop(\Person.firstName)) { _ in "Pasha" }
+                    <> (prop(\Person.lastName)) { $0.uppercased() }
+person
+  |> newIdentity
+
+let dict = ["hello": 5, "world!": 6]
+
+prop(\Dictionary<String,Int>.["hello"])
+
+func map<A, B>(_ f: @escaping (A) -> B) -> (A?) -> B? {
+  return { $0.map(f) }
+}
+
+//(prop(\Dictionary<String, Int>.["hello"]) <<< map <<< incr)
+
 /*:
  2. The `Set<A>` type in Swift does not have any key paths that we can use for adding and removing values. However, that shouldn't stop us from defining a functional setter! Define a function `elem` with signature `(A) -> ((Bool) -> Bool) -> (Set<A>) -> Set<A>`, which is a functional setter that allows one to add and remove a value `a: A` to a set by providing a transformation `(Bool) -> Bool`, where the input determines if the value is already in the set and the output determines if the value should be included.
  */
