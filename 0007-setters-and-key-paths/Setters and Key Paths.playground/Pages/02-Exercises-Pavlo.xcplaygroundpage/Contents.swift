@@ -1,13 +1,13 @@
 func prop<Root, Value>(_ kp: WritableKeyPath<Root, Value>)
   -> (@escaping (Value) -> Value)
   -> (Root) -> Root {
-  return { update in
-    return { oldInstance in
-      var copy = oldInstance
-      copy[keyPath: kp] = update(copy[keyPath: kp])
-      return copy
+    return { update in
+      return { oldInstance in
+        var copy = oldInstance
+        copy[keyPath: kp] = update(copy[keyPath: kp])
+        return copy
+      }
     }
-  }
 }
 
 struct Person {
@@ -117,13 +117,21 @@ func error<A, ErrorA, ErrorB>(_ f: @escaping (ErrorA) -> ErrorB) -> (Result<A, E
   }
 }
 
-//result
-//  |> (value <<< incr)
+result
+  |> value(incr)
 /*:
  6. Is it possible to make key path setters work with `enum`s?
  */
-// TODO
+// NEIN
 /*:
  7. Redefine some of our setters in terms of `inout`. How does the type signature and composition change?
  */
-// TODO
+func propInOut<Root, Value>(_ kp: WritableKeyPath<Root, Value>)
+  -> (@escaping (inout Value) -> Void)
+  -> (inout Root) -> Void {
+    return { update in
+      return { root in
+          update(&root[keyPath: kp])
+      }
+    }
+}
