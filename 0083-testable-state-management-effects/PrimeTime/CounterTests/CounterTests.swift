@@ -2,7 +2,7 @@ import XCTest
 @testable import Counter
 
 class CounterTests: XCTestCase {
-  override class func setUp() {
+  override func setUp() {
     super.setUp()
     Current = .mock
   }
@@ -74,7 +74,7 @@ class CounterTests: XCTestCase {
 
     var nextAction: CounterViewAction!
     let receivedCompletion = self.expectation(description: "receivedCompletion")
-    effects[0].sink(
+    let cancellable = effects[0].sink(
       receiveCompletion: { _ in
         receivedCompletion.fulfill()
     },
@@ -138,7 +138,7 @@ class CounterTests: XCTestCase {
 
     var nextAction: CounterViewAction!
     let receivedCompletion = self.expectation(description: "receivedCompletion")
-    effects[0].sink(
+    let cancellable = effects[0].sink(
       receiveCompletion: { _ in
         receivedCompletion.fulfill()
     },
