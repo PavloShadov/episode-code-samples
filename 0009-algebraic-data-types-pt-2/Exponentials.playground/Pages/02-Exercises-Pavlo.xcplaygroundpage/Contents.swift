@@ -16,7 +16,7 @@ pow(0, 100)
 
 func crash<A>(_ f: (A) -> Never) -> Never { abort() }
 
-// 0^a = 1, then a = 0
+// 0^a = 1, when a = 0
 // (A) -> Never = Void
 
 func doNothing<A>(_ f: (A) -> Never) -> Void {}
@@ -87,3 +87,4 @@ func to<A, B, C>(_ f: @escaping (C) -> (A, B)) -> ((C) -> A, (C) -> B) {
 func from<A, B, C>(_ f: ((C) -> A, (C) -> B)) -> (C) -> (A, B) {
   return { (f.0($0), f.1($0)) }
 }
+
