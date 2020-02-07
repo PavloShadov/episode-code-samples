@@ -103,9 +103,8 @@ testSet
   |> transformSet(hellofy) >>> transformSet(shout)
 
 testSet
-  |> transformSet(hellofy >>> shout)
-
-
+  |> transformSet(hellofy)
+  |> transformSet(shout)
 /*:
  4. There is another way of modeling sets that is different from `Set<A>` in the Swift standard library. It can also be defined as function `(A) -> Bool` that answers the question "is `a: A` contained in the set." Define a type `struct PredicateSet<A>` that wraps this function. Can you define the following?
 
@@ -115,7 +114,20 @@ testSet
 
      What goes wrong?
  */
-// TODO
+struct PredicateSet<A> {
+  let contains: (A) -> Bool
+}
+
+//func map<A, B>(_ f: (A) -> B) -> (PredicateSet<A>) -> PredicateSet<B> {
+//  return { predSet in
+//    // f: (A) -> B
+//    // predSet.contains // (A) -> Bool
+//    return PredicateSet<B>(contains: f >>> predSet.contains)
+//  }
+//}
+
+// The transformation is not possible
+
 /*:
  5. Try flipping the direction of the arrow in the previous exercise. Can you define the following function?
 
@@ -123,12 +135,91 @@ testSet
     fakeMap: ((B) -> A) -> (PredicateSet<A>) -> PredicateSet<B>
     ```
  */
-// TODO
+func fakeMap<A, B>(_ f: @escaping (B) -> A) -> (PredicateSet<A>) -> PredicateSet<B> {
+  return { predSet in
+    // f: (B) -> A
+    // predSet.contains // (A) -> Bool
+    return PredicateSet<B>(contains: f >>> predSet.contains)
+  }
+}
 /*:
  6. What kind of laws do you think `fakeMap` should satisfy?
  */
-// TODO
+// Contravariance ☺️
 /*:
  7. Sometimes we deal with types that have multiple type parameters, like `Either` and `Result`. For those types you can have multiple `map`s, one for each generic, and no one version is “more” correct than the other. Instead, you can define a `bimap` function that takes care of transforming both type parameters at once. Do this for `Result` and `Either`.
  */
-// TODO
+func bimap<A, B, A1, B1>(_ f: @escaping (A) -> A1,
+                         _ g: @escaping (B) -> B1) -> (Result<A, B>) -> Result<A1, B1> {
+    return {
+      switch $0 {
+      case .success(let a):
+        return Result<A1, B1>.success(f(a))
+      case .failure(let b):
+        return Result<A1, B1>.failure(g(b))
+      }
+    }
+}
+
+enum Either<A, B> {
+  case left(A)
+  case right(B)
+}
+
+func bimap<A, B, A1, B1>(_ f: @escaping (A) -> A1,
+                         _ g: @escaping (B) -> B1) -> (Either<A, B>) -> Either<A1, B1> {
+    return {
+      switch $0 {
+      case .left(let a):
+        return Either<A1, B1>.left(f(a))
+      case .right(let b):
+        return Either<A1, B1>.right(g(b))
+      }
+    }
+}
+/*:
+ 8. Write a few implementations of the following function:
+  
+    ```
+    func r<A>(_ xs: [A]) -> A? {
+    }
+    ```
+*/
+func r<A>(_ xs: [A]) -> A? {
+  //return xs.last
+  //return xs.first
+  var copy = xs
+  return copy.popLast()
+}
+/*:
+ 9. Continuing the previous exercise, can you generalize your implementations of r to a function [A] -> B? if you had a function f: (A) -> B?
+  
+    ```
+    func s<A, B>(_ f: (A) -> B, _ xs: [A]) -> B? {
+    }
+    ```
+ 
+    What features of arrays and optionals do you need to implement this?
+ */
+func s<A, B>(_ f: (A) -> B, _ xs: [A]) -> B? {
+  //return xs.map(f).first
+  //return xs.map(f).last
+  
+//  var copy = xs.map(f)
+//  return copy.popLast()
+  
+  return xs.first.map(f)
+}
+
+// To implement this I can:
+// 1. use map on [A] first to transform it to [B]. Then I can do [B] -> B?
+// 2. transform [A] -> A? and then apply map on optional to achieve (A?) -> B?
+/*:
+ 10. Derive a relationship between r, any function f: (A) -> B, and the map on arrays and optionals.
+
+      This relationship is the “free theorem” for r’s signature.
+*/
+// r<A>(_ xs: [A]) -> A?
+// f: (A) -> B
+// A?.map: A? -> B?
+// [A].map: [A] -> [B]
