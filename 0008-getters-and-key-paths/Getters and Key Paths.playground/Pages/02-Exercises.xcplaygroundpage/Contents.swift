@@ -1,82 +1,15 @@
-
-func get<Root, Value>(_ keyPath: KeyPath<Root, Value>) -> (Root) -> Value {
-  return { root in
-    return root[keyPath: keyPath]
-  }
-}
-
-prefix operator ^
-prefix func ^<Root, Value>(_ keyPath: KeyPath<Root, Value>) -> (Root) -> Value {
-  return get(keyPath)
-}
-
-func combining<Root, Value>(
-  _ f: @escaping (Root) -> Value,
-  by g: @escaping (Value, Value) -> Value
-) -> (Value, Root) -> Value {
-  return { value, root in
-    g(value, f(root))
-  }
-}
 /*:
  # Getters and Key Paths Exercises
 
  1. Find three more standard library APIs that can be used with our `get` and `^` helpers.
  */
-struct Person {
-  let name: String
-  let lastName: String
-  
-  var fullName: String {
-    return name + " " + lastName
-  }
-  
-  var fullNameCount: Int {
-    return name.count + lastName.count + 1
-  }
-}
-
-let condition = ^\Person.fullNameCount >>> { $0 > 10 }
-
-[Person(name: "Test", lastName: "Berlinson"), Person(name: "Lol", lastName: "!")]
-  //.drop(while: condition)
-  //.first(where: condition)
-  //.contains(where: condition)
+// TODO
 /*:
  2. The one downside to key paths being _only_ compiler generated is that we do not get to create new ones ourselves. We only get the ones the compiler gives us.
 
     And there are a lot of getters and setters that are not representable by key paths. For example, the “identity” key path `KeyPath<A, A>` that simply returns `self` for the getter and that setting on it leaves it unchanged. Can you think of any other interesting getters/setters that cannot be represented by key paths?
  */
-enum RankedNumber {
-  case units(Int)
-  case decades(Int)
-  case hundreds(Int)
-  
-  var normalized: Int {
-    switch self {
-    case .units(let u):
-      return u
-    case .decades(let d):
-      return d * 10
-    case .hundreds(let h):
-      return h * 100
-    }
-  }
-}
-
-
-
-let rankedNumbers = [RankedNumber.hundreds(1), RankedNumber.decades(3), RankedNumber.units(4), RankedNumber.units(1)]
-
-func derank(from array: [RankedNumber]) -> Int {
-  return array.reduce(0, combining(^\.normalized, by: +))
-}
-rankedNumbers
-  |> derank
-
-//func derankUnits(from array: [RankedNumber]) -> Int {
-//  return array.reduce(0, combining(^\.units, by: +)) // CANNOT get an associated value to calcualte only units
-//}
+// TODO
 /*:
  3. In our [Setters and Key Paths](https://www.pointfree.co/episodes/ep7-setters-and-key-paths) episode we showed how `map` could kinda be seen as a “setter” by saying:
 
@@ -90,34 +23,7 @@ rankedNumbers
 
     You may want to use the data types we defined [last time](https://github.com/pointfreeco/episode-code-samples/blob/1998e897e1535a948324d590f2b53b6240662379/0007-setters-and-key-paths/Setters%20and%20Key%20Paths.playground/Contents.swift#L2-L20).
  */
-struct Food {
-  var name: String
-}
-
-struct Location {
-  var name: String
-}
-
-struct User {
-  var favoriteFoods: [Food]
-  var location: Location
-  var name: String
-}
-
-let user = User(
-  favoriteFoods: [Food(name: "Tacos"), Food(name: "Nachos")],
-  location: Location(name: "Brooklyn"),
-  name: "Blob"
-)
-
-func shouted(_ x: String) -> String {
-  return x + "!"
-}
-
-//func map<Root, Value>(_ f: (Root) -> Value) -> 
-//
-//let x = ^\User.favoriteFoods >>> map >>> shouted
-//let listOfFood = ^\User.favoriteFoods <<< map <<< shouted
+// TODO
 /*:
  4. Repeat the above exercise by seeing how the free optional `map` can allow you to dive deeper into an optional value to extract out a part.
 
